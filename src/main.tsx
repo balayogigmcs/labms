@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App"; // Import main App component
 import "bootstrap/dist/css/bootstrap.min.css"; // Ensure Bootstrap is loaded globally
 import "./index.css"; // Ensure Tailwind is working
@@ -12,8 +12,8 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <Router>
+    <BrowserRouter> {/* ✅ Keep BrowserRouter ONLY here */}
       <App />
-    </Router>
+    </BrowserRouter>
   </React.StrictMode>
 );

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {  Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import LoginPage from "./pages/LoginPage";
@@ -11,7 +11,6 @@ import DashboardPage from "./pages/DashboardPage";
 
 const App: React.FC = () => {
   return (
-    <Router>
       <div className="flex flex-col h-screen">
         <Navbar />
         <div className="flex flex-1">
@@ -29,7 +28,6 @@ const App: React.FC = () => {
         </div>
         <Footer />
       </div>
-    </Router>
   );
 };
 
