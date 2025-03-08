@@ -12,7 +12,7 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter> {/* ✅ Keep BrowserRouter ONLY here */}
+    <BrowserRouter> 
       <App />
     </BrowserRouter>
   </React.StrictMode>

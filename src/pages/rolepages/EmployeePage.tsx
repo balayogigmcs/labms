@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebaseConfig"; // Ensure Firestore & Functions are imported
+import { auth, db } from "../../firebaseConfig"; // Ensure Firestore & Functions are imported
 import {
   signOut,
   onAuthStateChanged,
   User,
-  createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore methods
+import { doc, getDoc } from "firebase/firestore"; // Firestore methods
 
-const MainPage: React.FC = () => {
+const EmployeePage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [adminEmail, setAdminEmail] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -41,48 +38,7 @@ const MainPage: React.FC = () => {
     }
   };
 
-  // Function to add an admin user without logging out the current user
-  const setUserRole = async () => {
-    if (!adminEmail) {
-      alert("Please enter an admin email.");
-      return;
-    }
-
-    try {
-      // ✅ Store the currently logged-in user
-      const currentUser = auth.currentUser;
-
-      // ✅ Create the administrator account
-      const password = adminEmail.replace("@gmail.com", "");
-      const userRef = await createUserWithEmailAndPassword(
-        auth,
-        adminEmail,
-        password
-      );
-      const user = userRef.user;
-
-      // ✅ Store admin details in Firestore
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, {
-        email: adminEmail,
-        role: "administrator",
-        createdAt: new Date(),
-      });
-
-      alert("Administrator added successfully!");
-
-      // ✅ Re-authenticate back to the original user
-      if (currentUser) {
-        await auth.updateCurrentUser(currentUser);
-      }
-
-      // ✅ Reset modal and input field
-      setShowModal(false);
-      setAdminEmail("");
-    } catch (error) {
-      console.error("Error in adding user to Firestore:", error);
-    }
-  };
+  
 
   const handleLogout = async () => {
     try {
@@ -124,7 +80,7 @@ const MainPage: React.FC = () => {
           Go to Dashboard
         </button>
 
-
+{/* 
         {(role === "admin" || role === "administrator") && (
           <button
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -142,7 +98,7 @@ const MainPage: React.FC = () => {
           >
             Add Employee
           </button>
-        )}
+        )} */}
 
         <button
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -152,7 +108,7 @@ const MainPage: React.FC = () => {
         </button>
       </div>
 
-      {showModal && (
+      {/* {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Add Administrator</h2>
@@ -187,9 +143,9 @@ const MainPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
 
-export default MainPage;
+export default EmployeePage;

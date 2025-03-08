@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebaseConfig"; // Ensure Firestore & Functions are imported
+import { auth, db } from "../../firebaseConfig"; // Ensure Firestore & Functions are imported
 import {
   signOut,
   onAuthStateChanged,
   User,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore methods
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore"; // Firestore methods
 
-const MainPage: React.FC = () => {
+const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [adminEmail, setAdminEmail] = useState("");
+  const [adminList, setAdminList] = useState<
+    { uid: string; email: string; role: string }[]
+  >([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         await fetchUserRole(currentUser.uid);
+        await fetchAdminList();
       }
     });
 
@@ -38,6 +42,28 @@ const MainPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching user role:", error);
+    }
+  };
+
+  const fetchAdminList = async () => {
+    try {
+      const usersCollection = collection(db, "users");
+      const usersSnapshot = await getDocs(usersCollection);
+      const admins = usersSnapshot.docs
+        .filter((doc) => {
+          const role = doc.data().role;
+          return (
+            role === "administrator" || role === "employee" || role === "client"
+          );
+        })
+        .map((doc) => ({
+          uid: doc.id,
+          email: doc.data().email,
+          role: doc.data().role,
+        }));
+      setAdminList(admins);
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
 
@@ -99,7 +125,7 @@ const MainPage: React.FC = () => {
         Welcome to Lab Management System
       </h1>
       <p className="text-lg text-gray-700 mb-6">
-        You have successfully logged in.
+        You have successfully logged in as Admin.
       </p>
 
       {user && (
@@ -124,25 +150,24 @@ const MainPage: React.FC = () => {
           Go to Dashboard
         </button>
 
-
-        {(role === "admin" || role === "administrator") && (
+        {role === "admin" && (
           <button
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             // onClick={() => navigate("/admin-panel")}
             onClick={() => setShowModal(true)}
           >
-            {role === "admin" ? "Add administrator" : "Add Client"}
+            Add Administrator
           </button>
         )}
 
-        {role === "administrator" && (
+        {/* {role === "administrator" && (
           <button
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             onClick={() => setShowModal(true)}
           >
             Add Employee
           </button>
-        )}
+        )} */}
 
         <button
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -150,6 +175,23 @@ const MainPage: React.FC = () => {
         >
           Logout
         </button>
+      </div>
+
+      {/* 🔹 Display Admin List */}
+      <div className="mt-6 w-full max-w-md bg-white shadow-lg rounded-lg p-4">
+        <h2 className="text-xl font-bold mb-4">Users List</h2>
+        {adminList.length > 0 ? (
+          <ul>
+            {adminList.map((admin) => (
+              <li key={admin.uid} className="border-b p-2">
+                <strong>Email:</strong> {admin.email} <br />
+                <strong>Role:</strong> {admin.role}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-600">No administrators found.</p>
+        )}
       </div>
 
       {showModal && (
@@ -192,4 +234,4 @@ const MainPage: React.FC = () => {
   );
 };
 
-export default MainPage;
+export default AdminPage;

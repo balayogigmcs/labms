@@ -1,7 +1,9 @@
 // firebaseConfig.ts
 import { initializeApp } from "firebase/app";
+import { getFunctions, } from "firebase/functions";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyBoSjlFd2xu_BNEjHGBwXAS0XuKpOdmI_8",
@@ -14,5 +16,20 @@ const firebaseConfig = {
   };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+const auth = getAuth();
+// if (window.location.hostname === "localhost") {
+//   connectFirestoreEmulator(db, "localhost", 8080);
+//   connectAuthEmulator(auth, "http://localhost:9099");
+// }
+
+const functions = getFunctions(app);
+
+// // Connect to Emulator for local testing
+// if (window.location.hostname === "localhost") {
+//   connectFunctionsEmulator(functions, "localhost", 5001);
+// }
+
+
+export { auth, functions };
