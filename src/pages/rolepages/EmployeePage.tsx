@@ -1,35 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { use, useEffect, useState } from "react";
 import { auth, db } from "../../firebaseConfig"; // Ensure Firestore & Functions are imported
-import {
-  signOut,
-  onAuthStateChanged,
-  User,
-} from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore"; // Firestore methods
+import { onAuthStateChanged, User } from "firebase/auth";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore"; // Firestore methods
+import MicroForm from "../forms/MicroForms";
+import BioChemForm from "../forms/BioChemForms";
 
 const EmployeePage: React.FC = () => {
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [department, setDepartment] = useState<string>();
+  const [completedForms, setCompletedForms] = useState<string>("Pending");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        await fetchUserRole(currentUser.uid);
+        await fetchUserRoleAndDepartment(currentUser.uid);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  const fetchUserRole = async (uid: string) => {
+  const fetchUserRoleAndDepartment = async (uid: string) => {
     try {
       const userDocRef = doc(db, "users", uid);
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         setRole(userDoc.data().role);
+        setDepartment(userDoc.data().department);
       } else {
         console.warn("User role not found in Firestore");
       }
@@ -38,14 +37,30 @@ const EmployeePage: React.FC = () => {
     }
   };
 
-  
-
-  const handleLogout = async () => {
+  const handleSubmitForm = async (formName: string, data: any) => {
     try {
-      await signOut(auth);
-      navigate("/login");
+      if (!user) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // ✅ Fetch the total count of documents to determine the next form number
+      const reportsCollection = collection(db, "laboratory_reports");
+      const snapshot = await getDocs(reportsCollection);
+      const nextFormNumber = snapshot.size + 1; // Increment count to get next number
+
+      const docId = `form_${nextFormNumber}`; // Example: form_1, form_2, etc.
+
+      await setDoc(doc(db, "laboratory_reports", docId), {
+        ...data,
+        formType: formName,
+        userId: user.uid,
+        timestamp: new Date(),
+      });
+
+      alert(`Form ${formName} Submitted Successfully as ${docId}!`);
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error(`Error submitting Form ${formName}:`, error);
     }
   };
 
@@ -54,96 +69,41 @@ const EmployeePage: React.FC = () => {
       <h1 className="text-3xl font-bold mb-4">
         Welcome to Lab Management System
       </h1>
-      <p className="text-lg text-gray-700 mb-6">
-        You have successfully logged in.
-      </p>
 
-      {user && (
-        <div className="text-md text-gray-600 mb-4">
-          <p>
-            <strong>Logged in as:</strong> {user.email}
-          </p>
-          <p>
-            <strong>User UID:</strong> {user.uid}
-          </p>
-          <p>
-            <strong>Role:</strong> {role ? role : "Loading..."}
-          </p>
-        </div>
-      )}
-
-      <div className="flex flex-col space-y-4">
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={() => navigate("/dashboard")}
-        >
-          Go to Dashboard
-        </button>
-
-{/* 
-        {(role === "admin" || role === "administrator") && (
+      <div className="">
+        {["Pending", "Completed"].map((form) => (
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            // onClick={() => navigate("/admin-panel")}
-            onClick={() => setShowModal(true)}
+            className={`px-6 py-3 font-semibold transistion-all ${
+              completedForms === form
+                ? "bg-blue-600 text-white"
+                : "bg-gray-300 text-black"
+            }`}
+            key={form}
+            onClick={() => setCompletedForms(form)}
           >
-            {role === "admin" ? "Add administrator" : "Add Client"}
+            {form} Form
           </button>
-        )}
-
-        {role === "administrator" && (
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            onClick={() => setShowModal(true)}
-          >
-            Add Employee
-          </button>
-        )} */}
-
-        <button
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
+        ))}
       </div>
 
-      {/* {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Add Administrator</h2>
-            <p className="text-gray-600 mb-4">
-              Enter details to add a new administrator.
-            </p>
-
-            <input
-              type="email"
-              placeholder="Enter Admin Email"
-              className="w-full p-2 border rounded mb-4"
-              value={adminEmail}
-              onChange={(e) => setAdminEmail(e.target.value)}
+      {user && (
+        <div className="mt-10 w-full max-w-4xl overflow-y-auto h-96 p-4 bg-white shadow-lg rounded-lg">
+          <h2 className="text-2xl font-semibold text-center mb-4">
+            Submit Laboratory Report
+          </h2>
+          {department === "micro" ? (
+            <MicroForm
+              onSubmit={(data) => handleSubmitForm("micro", data)}
+              role={role ?? "guest"}
             />
-
-            <div className="flex justify-end space-x-4">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                onClick={() => {
-                  setShowModal(false);
-                  setAdminEmail("");
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                onClick={setUserRole}
-              >
-                Submit
-              </button>
-            </div>
-          </div>
+          ) : (
+            <BioChemForm
+              onSubmit={(data) => handleSubmitForm("micro", data)}
+              role={role ?? "guest"}
+            />
+          )}
         </div>
-      )} */}
+      )}
     </div>
   );
 };

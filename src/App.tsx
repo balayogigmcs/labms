@@ -12,6 +12,8 @@ import AdminPage from "./pages/rolepages/AdminPage";
 import AdministratorPage from "./pages/rolepages/AdministratorPage";
 import ClientPage from "./pages/rolepages/ClientPage";
 import EmployeePage from "./pages/rolepages/EmployeePage";
+import FrontDeskPage from "./pages/rolepages/FrontDeskPage";
+
 
 const App: React.FC = () => {
   return (
@@ -30,6 +32,7 @@ const App: React.FC = () => {
             <Route path="/administrator" element={<AdministratorPage />} />
             <Route path="/client" element={<ClientPage />} />
             <Route path="/employee" element={<EmployeePage />} />
+            <Route path="/frontdesk" element={<FrontDeskPage />} />
             <Route
               path="*"
               element={

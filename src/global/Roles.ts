@@ -29,6 +29,28 @@ export const getRole =async (uid:string):Promise<string | null>  => {
     }
 };
 
+export const getDepartment =async (uid:string):Promise<string | null>  => {
+    try {
+        const userDocRef = doc(db,"users",uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if(userDoc.exists()){
+            const userData = userDoc.data();
+            console.log("Fetched Role:", userData.department);
+            return userData.department || null;
+        } else {
+            console.warn("User document does not exist.");
+            return null;
+        }
+
+    } catch(error){
+        console.error("Error fetching department: ",error);
+        return null;
+    }
+};
+
+
+
 
 export const setRole = async(uid:string ,role:string ):Promise<void> =>{
     try{
@@ -37,5 +59,16 @@ export const setRole = async(uid:string ,role:string ):Promise<void> =>{
         console.log('Role updated to :${role}');
     } catch(error){
         console.error("Error in setting role ",error);
+    }
+}
+
+
+export const setDepartment = async(uid:string ,department:string ):Promise<void> =>{
+    try{
+        const userDocRef = doc(db,"users",uid);
+        await setDoc(userDocRef,{department});
+        console.log('Role updated to :${department}');
+    } catch(error){
+        console.error("Error in setting department ",error);
     }
 }
