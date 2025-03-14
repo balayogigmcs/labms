@@ -9,6 +9,7 @@ interface BioChemFormDesignProps {
   handleSubmit: (e: React.FormEvent) => void;
   role: string;
   testOptions: string[];
+  readOnly: boolean; //  Added readOnly prop
 }
 
 const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
@@ -17,6 +18,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
   handleCheckBoxChange,
   handleSubmit,
   role,
+  readOnly, //  Get readOnly prop
   testOptions = [
     "Octyl Methoxycinnamate",
     "Benzophenone-3",
@@ -62,6 +64,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
                   value={formData[key] || ""}
                   onChange={handleChange}
                   className="border p-2 rounded w-full mt-4"
+                  readOnly={readOnly} //  Make input read-only
                 />
               </div>
             ))}
@@ -85,17 +88,30 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
                   <input
                     type="checkbox"
                     onChange={() => handleCheckBoxChange(test)}
+                    disabled={readOnly} //  Disable checkbox if readOnly
                   />
                 </td>
                 <td className="border px-2 py-1">{test}</td>
                 <td className="border px-2 py-1">
-                  <input type="text" className="w-full p-1 border" />
+                  <input
+                    type="text"
+                    className="w-full p-1 border"
+                    readOnly={readOnly} //  Make read-only
+                  />
                 </td>
                 <td className="border px-2 py-1">
-                  <input type="text" className="w-full p-1 border" />
+                  <input
+                    type="text"
+                    className="w-full p-1 border"
+                    readOnly={readOnly} //  Make read-only
+                  />
                 </td>
                 <td className="border px-2 py-1">
-                  <input type="text" className="w-full p-1 border" />
+                  <input
+                    type="text"
+                    className="w-full p-1 border"
+                    readOnly={readOnly} //  Make read-only
+                  />
                 </td>
               </tr>
             ))}
@@ -112,6 +128,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
             onChange={handleChange}
             className="w-full border rounded p-2"
             rows={2}
+            readOnly={readOnly} //  Make read-only
           ></textarea>
         </div>
 
@@ -123,6 +140,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
             onChange={handleChange}
             className="w-full border rounded p-2"
             rows={1}
+            readOnly={readOnly} //  Make read-only
           ></textarea>
         </div>
 
@@ -134,6 +152,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
             value={formData.testedBy || ""}
             onChange={handleChange}
             className="border p-2 rounded w-full"
+            readOnly={readOnly} //  Make read-only
           />
           <input
             type="text"
@@ -142,12 +161,17 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
             value={formData.reviewedBy || ""}
             onChange={handleChange}
             className="border p-2 rounded w-full"
+            readOnly={readOnly} //  Make read-only
           />
         </div>
 
+        {/* Submit Button - Disabled in Read-Only Mode */}
         <button
           type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+          className={`bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 ${
+            readOnly ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={readOnly} //  Disable submit button
         >
           Submit
         </button>
