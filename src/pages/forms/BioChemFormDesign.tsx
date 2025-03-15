@@ -1,4 +1,5 @@
 import React from "react";
+import { getRolePermissionsForChemicalForm } from "../../global/RolePermission";
 
 interface BioChemFormDesignProps {
   formData: Record<string, any>;
@@ -9,7 +10,6 @@ interface BioChemFormDesignProps {
   handleSubmit: (e: React.FormEvent) => void;
   role: string;
   testOptions: string[];
-  readOnly: boolean; //  Added readOnly prop
 }
 
 const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
@@ -18,7 +18,6 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
   handleCheckBoxChange,
   handleSubmit,
   role,
-  readOnly, //  Get readOnly prop
   testOptions = [
     "Octyl Methoxycinnamate",
     "Benzophenone-3",
@@ -35,6 +34,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
     "Other",
   ],
 }) => {
+  const permission = getRolePermissionsForChemicalForm(role);
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <h1 className="text-xl font-bold text-center">
@@ -64,7 +64,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
                   value={formData[key] || ""}
                   onChange={handleChange}
                   className="border p-2 rounded w-full mt-4"
-                  readOnly={readOnly} //  Make input read-only
+                  disabled={!permission.canEditFields}
                 />
               </div>
             ))}
@@ -88,7 +88,7 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
                   <input
                     type="checkbox"
                     onChange={() => handleCheckBoxChange(test)}
-                    disabled={readOnly} //  Disable checkbox if readOnly
+                    disabled={!permission.canEditActiveIngredient}
                   />
                 </td>
                 <td className="border px-2 py-1">{test}</td>
@@ -96,21 +96,21 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
                   <input
                     type="text"
                     className="w-full p-1 border"
-                    readOnly={readOnly} //  Make read-only
+                    disabled={!permission.canEditResultFields}
                   />
                 </td>
                 <td className="border px-2 py-1">
                   <input
                     type="text"
                     className="w-full p-1 border"
-                    readOnly={readOnly} //  Make read-only
+                    disabled={!permission.canEditResultFields}
                   />
                 </td>
                 <td className="border px-2 py-1">
                   <input
                     type="text"
                     className="w-full p-1 border"
-                    readOnly={readOnly} //  Make read-only
+                    disabled={!permission.canEditResultFields}
                   />
                 </td>
               </tr>
@@ -125,10 +125,10 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
           <textarea
             name="reasonForChanges"
             value={formData.reasonForChanges || ""}
-            onChange={handleChange}
+            onChange={!permission.canEditComments ? handleChange : undefined}
             className="w-full border rounded p-2"
             rows={2}
-            readOnly={readOnly} //  Make read-only
+            disabled={!permission.canEditComments}
           ></textarea>
         </div>
 
@@ -137,10 +137,10 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
           <textarea
             name="witness"
             value={formData.witness || ""}
-            onChange={handleChange}
+            onChange={permission.canEditComments ? handleChange : undefined}
             className="w-full border rounded p-2"
             rows={1}
-            readOnly={readOnly} //  Make read-only
+            disabled={!permission.canEditComments}
           ></textarea>
         </div>
 
@@ -150,28 +150,26 @@ const BioChemFormDesign: React.FC<BioChemFormDesignProps> = ({
             name="testedBy"
             placeholder="Tested By"
             value={formData.testedBy || ""}
-            onChange={handleChange}
+            onChange={permission.canEditComments ? handleChange : undefined}
             className="border p-2 rounded w-full"
-            readOnly={readOnly} //  Make read-only
+            disabled={!permission.canEditComments}
           />
           <input
             type="text"
             name="reviewedBy"
             placeholder="Reviewed By"
             value={formData.reviewedBy || ""}
-            onChange={handleChange}
+            onChange={permission.canEditComments ? handleChange : undefined}
             className="border p-2 rounded w-full"
-            readOnly={readOnly} //  Make read-only
+            disabled={!permission.canEditComments}
           />
         </div>
 
         {/* Submit Button - Disabled in Read-Only Mode */}
         <button
           type="submit"
-          className={`bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 ${
-            readOnly ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={readOnly} //  Disable submit button
+          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 "
+          disabled={!permission.canSubmit}
         >
           Submit
         </button>

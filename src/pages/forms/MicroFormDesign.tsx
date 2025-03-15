@@ -1,4 +1,5 @@
 import React from "react";
+import { getRolePermissionsForMicroForm } from "../../global/RolePermission";
 
 interface MicroFormDesignProps {
   formData: any;
@@ -19,10 +20,12 @@ const MicroFormDesign: React.FC<MicroFormDesignProps> = ({
   handleSubmit,
   role,
 }) => {
-    const safeFormData = {
-        ...formData,
-        pathogenResults: formData?.pathogenResults || {},
-      };
+  const safeFormData = {
+    ...formData,
+    pathogenResults: formData?.pathogenResults || {},
+  };
+
+  const permission = getRolePermissionsForMicroForm(role);
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 shadow-lg border border-gray-300">
       {/* Header Section */}
@@ -62,8 +65,10 @@ const MicroFormDesign: React.FC<MicroFormDesignProps> = ({
                   type={name.includes("date") ? "date" : "text"}
                   name={name}
                   value={safeFormData?.[name] || ""}
-                  onChange={handleChange}
+                  onChange={permission.canEditFields ? handleChange : undefined}
                   className="border p-2 rounded w-full"
+                  // readOnly={!permission.canEditFields}
+                  disabled={!permission.canEditFields}
                 />
               </div>
             );
@@ -83,48 +88,61 @@ const MicroFormDesign: React.FC<MicroFormDesignProps> = ({
             </tr>
           </thead>
           <tbody>
-            {Object.keys(safeFormData?.pathogenResults || {}).map((organism, index) => (
-              <tr key={index}>
-                <td className="border border-gray-500 p-1">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="mr-3"
-                      checked={
-                        safeFormData.pathogenResults[organism]?.selected || false
-                      }
-                      onChange={() => handleSelectChange(organism)}
-                      disabled={role !== "client"}
-                    />
-                    {organism}
-                  </label>
-                </td>
-                <td className="border border-gray-500 p-1">
-                  <label className="mr-2">
-                    <input
-                      type="checkbox"
-                      checked={
-                        safeFormData.pathogenResults[organism]?.absent || false
-                      }
-                      onChange={() => handleCheckboxChange(organism, "absent")}
-                    />
-                    Absent
-                  </label>
-                  <span className="mx-3">/</span>
-                  <label className="ml-3 mr-2">
-                    <input
-                      type="checkbox"
-                      checked={
-                        safeFormData.pathogenResults[organism]?.present || false
-                      }
-                      onChange={() => handleCheckboxChange(organism, "present")}
-                    />
-                    Present in 11 g of sample
-                  </label>
-                </td>
-                <td className="border border-gray-500 p-1">Absent</td>
-              </tr>
-            ))}
+            {Object.keys(safeFormData?.pathogenResults || {}).map(
+              (organism, index) => (
+                <tr key={index}>
+                  <td className="border border-gray-500 p-1">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        className="mr-3"
+                        checked={
+                          safeFormData.pathogenResults[organism]?.selected ||
+                          false
+                        }
+                        onChange={() => handleSelectChange(organism)}
+                        disabled={!permission.canEditPathogenicCheckboxes}
+                      />
+                      {organism}
+                    </label>
+                  </td>
+                  <td className="border border-gray-500 p-1">
+                    <label className="mr-2">
+                      <input
+                        type="checkbox"
+                        checked={
+                          safeFormData.pathogenResults[organism]?.absent ||
+                          false
+                        }
+                        onChange={() =>
+                          handleCheckboxChange(organism, "absent")
+                        }
+                        disabled={!permission.canEditResultCheckboxes}
+                      />
+                      Absent
+                    </label>
+                    <span className="mx-3">/</span>
+                    <label className="ml-3 mr-2">
+                      <input
+                        type="checkbox"
+                        checked={
+                          safeFormData.pathogenResults[organism]?.present ||
+                          false
+                        }
+                        onChange={
+                          !permission.canEditPathogenicCheckboxes
+                            ? () => handleCheckboxChange(organism, "present")
+                            : () => {}
+                        }
+                        disabled={!permission.canEditResultCheckboxes}
+                      />
+                      Present in 11 g of sample
+                    </label>
+                  </td>
+                  <td className="border border-gray-500 p-1">Absent</td>
+                </tr>
+              )
+            )}
           </tbody>
         </table>
 
@@ -133,10 +151,11 @@ const MicroFormDesign: React.FC<MicroFormDesignProps> = ({
           <label className="block text-sm font-semibold">Comments:</label>
           <textarea
             name="comments"
-            onChange={handleChange}
+            onChange={permission.canEditComments ? handleChange : undefined}
             className="w-full border rounded p-2"
             rows={2}
             value={safeFormData.comments || ""}
+            disabled={!permission.canEditComments}
           ></textarea>
         </div>
 
@@ -152,6 +171,7 @@ const MicroFormDesign: React.FC<MicroFormDesignProps> = ({
                   value={safeFormData[name] || ""}
                   onChange={handleChange}
                   className="border p-2 rounded w-full"
+                  disabled={!permission.canEditResultCheckboxes}
                 />
               </div>
             );
@@ -162,6 +182,7 @@ const MicroFormDesign: React.FC<MicroFormDesignProps> = ({
         <button
           type="submit"
           className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 w-full"
+          disabled={!permission.canSubmit}
         >
           Submit Report
         </button>
